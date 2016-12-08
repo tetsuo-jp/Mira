@@ -139,8 +139,9 @@ m_star (NFA myStates myMoves _start _finish)
 
 m_not :: Nfa Int -> Nfa Int
 
-m_not (NFA myStates myMoves start finish)
+m_not nfa
       = NFA myStates myMoves start (Set.difference myStates finish)
+  where (NFA myStates myMoves start finish) = make_deterministic nfa
 
 --------------------------------------------------------------------------
 --	Auxilliary functions used in the definition of NFAs from	--
