@@ -12,8 +12,8 @@ module Language.Mira.Generate where
 import Language.Mira.RegExp
 import Language.Mira.Root(root) -- this gives the integer square root
 
-generate :: Reg -> [String]
-generate Epsilon = [ "" ]
+generate :: Reg b -> [[b]]
+generate Epsilon = [ [] ]
 generate (Literal ch) = [ [ch] ]
 generate (Or r1 r2)
   = interleave (generate r1) (generate r2)

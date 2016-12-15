@@ -106,7 +106,7 @@ addstep mach alpha dfa
 --   Defined by iterating 'addmove'.
 addmoves :: Ord b => Nfa Int b -> Set Int -> [b] -> Nfa (Set Int) b -> Nfa (Set Int) b
 
-addmoves mach x [] dfa    = dfa
+addmoves _ _ [] dfa    = dfa
 
 addmoves mach x (c:r) dfa = addmoves mach x r (addmove mach x c dfa)
 
@@ -114,16 +114,16 @@ addmoves mach x (c:r) dfa = addmoves mach x r (addmove mach x c dfa)
 -- character @c@.
 addmove :: Ord b => Nfa Int b -> Set Int -> b -> Nfa (Set Int) b -> Nfa (Set Int) b
 
-addmove mach x c (NFA states moves start finish)
-  = NFA states' moves' start finish'
+addmove mach x c (NFA _states _moves _start _finish)
+  = NFA states' moves' _start finish'
     where
-    states' = states `union` singleton new
-    moves'  = moves  `union` singleton (Move x c new)
+    states' = _states `union` singleton new
+    moves'  = _moves  `union` singleton (Move x c new)
     finish'
-     | empty /= (term `intersection` new)    = finish `union` singleton new
-     | otherwise                      = finish
+     | empty /= (term `intersection` new) = _finish `union` singleton new
+     | otherwise                          = _finish
     new = onetrans mach c x
-    (NFA s m q term) = mach
+    (NFA _ _ _ term) = mach
 
 -- | 'nfa_limit' finds the limit of an nfa transforming function. Just like
 -- 'limit' except for the change of equality test.

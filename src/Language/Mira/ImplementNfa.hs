@@ -33,8 +33,7 @@ import Language.Mira.NfaLib
 --									--
 --------------------------------------------------------------------------
 
-trans :: Ord a => Nfa a -> String -> Set a
-
+trans :: (Foldable t, Ord a, Eq b) => Nfa a b -> t b -> Set a
 trans mach str = foldl step startset str
                  where
                  step set ch = onetrans mach ch set
@@ -42,7 +41,7 @@ trans mach str = foldl step startset str
 
 -- | 'accepts' @mach str@ is @True@ if the automaton @mach@ accepts the
 --   string @str@
-accepts :: Ord a => Nfa a -> String -> Bool
+accepts :: (Foldable t, Ord a, Eq b) => Nfa a b -> t b -> Bool
 accepts mach str = not (empty == (trans mach str `intersection` finalstates mach))
 
 --------------------------------------------------------------------------
@@ -54,6 +53,5 @@ accepts mach str = not (empty == (trans mach str `intersection` finalstates mach
 --	Turn the result of trans into printable form.			--
 --------------------------------------------------------------------------
 
-print_trans :: Nfa Int -> String -> [Char]
-
+print_trans :: (Foldable t, Show a, Ord a, Eq b) => Nfa a b -> t b -> String
 print_trans mach str = show (Set.toList (trans mach str))

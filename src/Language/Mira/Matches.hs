@@ -11,8 +11,8 @@ module Language.Mira.Matches where
 
 import Language.Mira.RegExp
 
-matches :: Reg -> String -> Bool
-matches Epsilon st = (st == "")
+matches :: Eq b => Reg b -> [b] -> Bool
+matches Epsilon st = (st == [])
 matches (Literal ch) st = (st == [ch])
 matches (Or r1 r2) st
   = matches r1 st || matches r2 st

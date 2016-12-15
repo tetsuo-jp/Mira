@@ -27,11 +27,12 @@ import Language.Mira.NfaTypes
 --									--
 --------------------------------------------------------------------------
 
-minimise :: Ord a => Nfa a -> Nfa a
+minimise :: (Ord b, Ord a) => Nfa a b -> Nfa a b
 minimise mach@(NFA myStates _ _ _)
   | Set.null myStates = mach
 minimise mach = replace mini mach
                 where
+                -- replace :: (Ord a,Ord b,Ord c) => (a -> c) -> Nfa a b -> Nfa c b
                 replace f (NFA myStates myMoves start finish)
                   = NFA states' moves' start' finish'
                     where
@@ -39,10 +40,13 @@ minimise mach = replace mini mach
                     moves' = Set.map (\(Move a c b) -> Move (f a) c (f b)) myMoves
                     start' = f start
                     finish' = Set.map f finish
+                -- mini :: Ord a => a -> a
                 mini a = Set.findMin (eqclass a)
+                -- eqclass :: Ord a => a -> Set a
                 eqclass a = case [ b | b <- Set.toList classes , a `member` b ] of
                             []    -> error "minimise eqclass"
                             (x:_) -> x
+                -- classes :: Ord a => Set (Set a)
                 classes = eqivclasses mach
 
 --------------------------------------------------------------------------
@@ -97,7 +101,7 @@ addtoclass (<=>) a (c:r)
 --									--
 --------------------------------------------------------------------------
 
-eqivclasses :: Ord a => Nfa a -> Set (Set a)
+eqivclasses :: (Ord a,Ord b) => Nfa a b -> Set (Set a)
 
 eqivclasses = fst . eqclasses
 
@@ -130,7 +134,7 @@ eqivclasses = fst . eqclasses
 --									--
 --------------------------------------------------------------------------
 
-eqclasses :: Ord a => Nfa a -> ( Set (Set a) , a -> a -> Bool )
+eqclasses :: (Ord a, Eq b) => Nfa a b -> (Set (Set a), a -> a -> Bool)
 eqclasses mach = to_limit step start
           where
 
