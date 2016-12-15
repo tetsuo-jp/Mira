@@ -1,5 +1,4 @@
-
--------------------------------------------------------------------------- 
+--------------------------------------------------------------------------
 --									--
 --	BuildNfa.hs							--
 --									--
@@ -7,11 +6,11 @@
 --									--
 --	Regular expressions are defined in regexp, and the type of	--
 --	NFAs in nfa_types. The implementation of sets used is in	--
---	sets. 								--
+--	sets.								--
 --									--
 --	(c) Simon Thompson, 1995, 2000					--
 --									--
--------------------------------------------------------------------------- 
+--------------------------------------------------------------------------
 
 module Language.Mira.BuildNfa where
 
@@ -23,32 +22,31 @@ import Data.List (elemIndex)
 import Data.Maybe (fromMaybe)
 import Data.Set (singleton, union)
 
--------------------------------------------------------------------------- 
+--------------------------------------------------------------------------
 --									--
 --	Here we build NFAs of type (Nfa Int) to recognise regular	--
 --	expressions.							--
 --									--
---	We define a series of conbinators for these numeric NFAs, so 	--
+--	We define a series of conbinators for these numeric NFAs, so	--
 --	as to build the results by recursion on the structure of the	--
 --	regular expression, an object of type regexp.			--
 --									--
--------------------------------------------------------------------------- 
+--------------------------------------------------------------------------
 
-
-build :: Reg -> Nfa Int
+build :: Ord b => Reg b -> Nfa Int b
 
 build Epsilon = NFA
-	        (Set.fromList [0 .. 1])
-	        (singleton (Emove 0 1))
-	        0
-	        (singleton 1)
+                (Set.fromList [0 .. 1])
+                (singleton (Emove 0 1))
+                0
+                (singleton 1)
 
 build (Literal c)
-	      = NFA
-	        (Set.fromList [0 .. 1])
-	        (singleton (Move 0 c 1))
-	        0
-	        (singleton 1)
+              = NFA
+                (Set.fromList [0 .. 1])
+                (singleton (Move 0 c 1))
+                0
+                (singleton 1)
 
 build (Or r1 r2) = m_or (build r1) (build r2)
 
@@ -60,13 +58,13 @@ build (Star r) = m_star (build r)
 
 build (Not r) = m_not (build r)
 
--------------------------------------------------------------------------- 
+--------------------------------------------------------------------------
 --									--
 --	Combinators for machines, called by build.			--
 --									--
--------------------------------------------------------------------------- 
+--------------------------------------------------------------------------
 
-m_or :: Nfa Int -> Nfa Int -> Nfa Int
+m_or :: Ord b => Nfa Int b -> Nfa Int b -> Nfa Int b
 
 m_or (NFA states1 moves1 _start1 _finish1) (NFA states2 moves2 _start2 _finish2)
 
@@ -86,7 +84,7 @@ m_or (NFA states1 moves1 _start1 _finish1) (NFA states2 moves2 _start2 _finish2)
     newmoves = Set.fromList [ Emove 0 1 , Emove 0 (m1+1) ,
                        Emove m1 (m1+m2+1) , Emove (m1+m2) (m1+m2+1) ]
 
-m_and :: Nfa Int -> Nfa Int -> Nfa Int
+m_and :: Ord b => Nfa Int b -> Nfa Int b -> Nfa Int b
 
 m_and n1 n2
       = NFA
@@ -94,7 +92,7 @@ m_and n1 n2
       (Set.fromList [Move (indexOf (s1,s2) cross_list) a1 (indexOf (sn, sm) cross_list) | Move s1 a1 sn <- moves1',  Move s2 a2 sm <- moves2', a1 == a2])
       start
       (Set.fromList [indexOf (f1,f2) cross_list | f1 <- finish1', f2 <- finish2'])
-      
+
       where
       n1' = make_deterministic n1
       n2' = make_deterministic n2
@@ -107,24 +105,24 @@ m_and n1 n2
       finish1' = (Set.toList (finalstates n1'))
       finish2' = (Set.toList (finalstates n2'))
 
-m_then :: Nfa Int -> Nfa Int -> Nfa Int
+m_then :: Ord b => Nfa Int b -> Nfa Int b -> Nfa Int b
 
 m_then (NFA states1 moves1 start1 _finish1) (NFA states2 moves2 _start2 finish2)
 
       = NFA
         (union states1 states2')
         (union moves1 moves2')
-	start1
-	finish2'
+        start1
+        finish2'
 
-	where
+        where
 
-	states2' = Set.map (renumber k) states2
-	moves2'  = Set.map (renumber_move k) moves2
-	finish2' = Set.map (renumber k) finish2
-	k = Set.size states1 - 1
+        states2' = Set.map (renumber k) states2
+        moves2'  = Set.map (renumber_move k) moves2
+        finish2' = Set.map (renumber k) finish2
+        k = Set.size states1 - 1
 
-m_star :: Nfa Int -> Nfa Int 
+m_star :: Ord b => Nfa Int b -> Nfa Int b
 
 m_star (NFA myStates myMoves _start _finish)
   = NFA
@@ -139,20 +137,22 @@ m_star (NFA myStates myMoves _start _finish)
     moves'  = Set.map (renumber_move 1) myMoves
     newmoves = Set.fromList [ Emove 0 1 , Emove m 1 , Emove 0 (m+1) , Emove m (m+1) ]
 
-m_not :: Nfa Int -> Nfa Int
+m_not :: Ord b => Nfa Int b -> Nfa Int b
 
-m_not (NFA states moves start finish)
-      = NFA states moves start (Set.difference states finish)
--------------------------------------------------------------------------- 
+m_not nfa
+      = NFA myStates myMoves start (Set.difference myStates finish)
+  where (NFA myStates myMoves start finish) = make_deterministic nfa
+
+--------------------------------------------------------------------------
 --	Auxilliary functions used in the definition of NFAs from	--
 --	regular expressions.						--
--------------------------------------------------------------------------- 
+--------------------------------------------------------------------------
 
 renumber :: Int -> Int -> Int
 
 renumber n st = n + st
 
-renumber_move :: Int -> Move Int -> Move Int
+renumber_move :: Int -> Move Int b -> Move Int b
 
 renumber_move k (Move s1 c s2)
       = Move (renumber k s1) c (renumber k s2)

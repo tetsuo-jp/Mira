@@ -20,8 +20,8 @@ Char    { TokenChar $$ }
 ')'     { TokenCloseParen }
 
 %%
-Reg :: { Reg }
-Reg : '@'	        { Epsilon }
+Reg :: { Reg Char }
+Reg : '@'               { Epsilon }
   | Char                { Literal $1 }
   | Reg '*'             { (Star $1) }
   | '(' Reg ')' '*'     { (Star $2) }
@@ -55,7 +55,7 @@ lexer ('&':cs) = TokenAnd : lexer cs
 lexer ('.':cs) = TokenConcat : lexer cs
 lexer ('(':cs) = TokenOpenParen : lexer cs
 lexer (')':cs) = TokenCloseParen : lexer cs
-    
+
 parseError :: [Token] -> a
 parseError _ = error "Parse error"
 
