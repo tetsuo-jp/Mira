@@ -13,8 +13,8 @@ extra-source-files: src/Language/Mira/RegExpParser.y
 
 Library
   Build-Depends:	base < 5
-                      , containers <= 0.5.6.2
-                      , QuickCheck >= 2 && <= 2.8.1
+                      , containers >= 0.5.6.2
+                      , QuickCheck >= 2
                       , array >= 0.2.0
   Build-Tools:        happy >= 1.18
   hs-source-dirs:     src

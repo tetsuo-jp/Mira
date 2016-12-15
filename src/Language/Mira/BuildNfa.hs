@@ -152,7 +152,7 @@ renumber :: Int -> Int -> Int
 
 renumber n st = n + st
 
-renumber_move :: Ord b => Int -> Move Int b -> Move Int b
+renumber_move :: Int -> Move Int b -> Move Int b
 
 renumber_move k (Move s1 c s2)
       = Move (renumber k s1) c (renumber k s2)
