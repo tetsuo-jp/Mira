@@ -26,7 +26,7 @@ import Language.Mira.NfaLib
 -- |    Conversion of an nfa produced by build to a dfa.
 --	Note that a ``dead'' state is produced by the process as
 --	implemented here.
-make_deterministic :: Nfa Int -> Nfa Int
+make_deterministic :: Ord b => Nfa Int b -> Nfa Int b
 
 --	First make a (nfa (set num)) using make_deter, and then
 --	convert to a numeric dfa by means of the numbering functio
@@ -36,7 +36,7 @@ make_deterministic = number . make_deter
 -- | 'number' @m@ extracts a list of the states from @m@ (statelist),
 --   and returns machine where each state is replaced by its position in the
 --   statelist, given by the function change
-number :: Nfa (Set Int) -> Nfa Int
+number :: Ord b => Nfa (Set Int) b -> Nfa Int b
 
 number (NFA states moves start finish)
   = NFA states' moves' start' finish'
@@ -59,7 +59,7 @@ number (NFA states moves start finish)
 
 -- | 'make_deter' calls the crucial function 'deterministic' on a machine and
 --   its alphabet.
-make_deter :: Nfa Int -> Nfa (Set Int)
+make_deter :: Ord b => Nfa Int b -> Nfa (Set Int) b
 
 make_deter mach = deterministic mach (alphabet mach)
 
@@ -72,7 +72,7 @@ make_deter mach = deterministic mach (alphabet mach)
 -- start state of mach. Note that this may be terminal - test for this by
 -- taking an intersection of this state set with the set term of terminal
 -- states of mach.
-deterministic :: Nfa Int -> [Char] -> Nfa (Set Int)
+deterministic :: Ord b => Nfa Int b -> [b] -> Nfa (Set Int) b
 
 deterministic mach alpha
     = nfa_limit (addstep mach alpha) startmach
@@ -90,7 +90,7 @@ deterministic mach alpha
 
 -- | 'addstep' adds all the new states which can be made by a single
 -- transition on one of the characters of the alphabet.
-addstep :: Nfa Int -> [Char] -> Nfa (Set Int) -> Nfa (Set Int)
+addstep :: Ord b => Nfa Int b -> [b] -> Nfa (Set Int) b -> Nfa (Set Int) b
 
 addstep mach alpha dfa
   = add_aux mach alpha dfa (Set.toList states)
@@ -104,7 +104,7 @@ addstep mach alpha dfa
 --   state set @x@ over alphabet @alpha@.
 --
 --   Defined by iterating 'addmove'.
-addmoves :: Nfa Int -> Set Int -> [Char] -> Nfa (Set Int) -> Nfa (Set Int)
+addmoves :: Ord b => Nfa Int b -> Set Int -> [b] -> Nfa (Set Int) b -> Nfa (Set Int) b
 
 addmoves mach x [] dfa    = dfa
 
@@ -112,7 +112,7 @@ addmoves mach x (c:r) dfa = addmoves mach x r (addmove mach x c dfa)
 
 -- | 'addmove' @mach x c dfa@ will add to @dfa@ the moves from state set @x@ on
 -- character @c@.
-addmove :: Nfa Int -> Set Int -> Char -> Nfa (Set Int) -> Nfa (Set Int)
+addmove :: Ord b => Nfa Int b -> Set Int -> b -> Nfa (Set Int) b -> Nfa (Set Int) b
 
 addmove mach x c (NFA states moves start finish)
   = NFA states' moves' start finish'
@@ -127,10 +127,9 @@ addmove mach x c (NFA states moves start finish)
 
 -- | 'nfa_limit' finds the limit of an nfa transforming function. Just like
 -- 'limit' except for the change of equality test.
-nfa_limit :: Eq a => (Nfa a -> Nfa a) -> Nfa a -> Nfa a
-
+nfa_limit :: (Eq a, Eq b) => (Nfa a b -> Nfa a b) -> Nfa a b -> Nfa a b
 nfa_limit f n
-  | n == next       = n
-  | otherwise       = nfa_limit f next
+  | n == next = n
+  | otherwise = nfa_limit f next
                 where
                 next = f n

@@ -10,20 +10,20 @@
 
 module Language.Mira.RegExp where
 
-data Reg = Epsilon |
-           Literal Char |
-           Or Reg Reg |
-           And Reg Reg |
-           Then Reg Reg |
-           Star Reg |
-           Not Reg
-           deriving Eq
+data Reg b = Epsilon |
+             Literal b |
+             Or (Reg b) (Reg b) |
+             And (Reg b) (Reg b) |
+             Then (Reg b) (Reg b) |
+             Star (Reg b) |
+             Not (Reg b)
+             deriving Eq
 
 --------------------------------------------------------------------------
 --	Definitions of ? and +						--
 --------------------------------------------------------------------------
 
-opt,plus :: Reg -> Reg
+opt,plus :: Reg b -> Reg b
 
 opt re = Or re Epsilon
 
@@ -36,7 +36,7 @@ plus re = Then (Star re) re
 --	  = Or (Literal 'a') (Or (Literal 'b') (Literal 'c'))		--
 --------------------------------------------------------------------------
 
-rangeChar :: Char -> Char -> Reg
+rangeChar :: Char -> Char -> Reg Char
 
 rangeChar c1 c2
       = foldr1 Or (map Literal [c1 .. c2])
@@ -45,7 +45,7 @@ rangeChar c1 c2
 --	Examples							--
 --------------------------------------------------------------------------
 
-a, b :: Reg
+a, b :: Reg Char
 a = Literal 'a'
 b = Literal 'b'
 
@@ -60,7 +60,7 @@ regexp2 = Or (Then a b) (Then b a)
 --	Which literals occur in a regular expression?			--
 --------------------------------------------------------------------------
 
-literals :: Reg -> [Char]
+literals :: Reg b -> [b]
 
 literals Epsilon      = []
 literals (Literal ch) = [ch]
@@ -75,13 +75,13 @@ literals (Star r)     = literals r
 --	@ is used instead for the epsilon character.			--
 --------------------------------------------------------------------------
 
-instance Show Reg where
+instance Show b => Show (Reg b) where
   show = printRE
 
-printRE :: Reg -> [Char]
+printRE :: Show b => Reg b -> String
 
 printRE Epsilon = "@"
-printRE (Literal ch) = [ch]
+printRE (Literal ch) = show ch
 printRE (Or r1 r2) = "(" ++ printRE r1 ++ "|" ++ printRE r2 ++ ")"
 printRE (And r1 r2) = "(" ++ printRE r1 ++ "&" ++ printRE r2 ++ ")"
 printRE (Then r1 r2) = "(" ++ printRE r1 ++ printRE r2 ++ ")"

@@ -27,8 +27,7 @@ import Language.Mira.NfaTypes
 --									--
 --------------------------------------------------------------------------
 
-machM, machN :: Nfa Int
-
+machM, machN :: Nfa Int Char
 machM = NFA
         (Set.fromList [0..3])
         (Set.fromList [ Move 0 'a' 0 ,
@@ -38,7 +37,6 @@ machM = NFA
                         Move 2 'b' 3 ] )
         0
         (singleton 3)
-
 machN = NFA
         (Set.fromList [0..5])
         (Set.fromList [ Move 0 'a' 1 ,
@@ -56,8 +54,7 @@ machN = NFA
 --									--
 --------------------------------------------------------------------------
 
-print_nfa :: Nfa Int -> String
-
+print_nfa :: (Show a, Show b) => Nfa a b -> String
 print_nfa (NFA myStates myMoves start finish) =
         "digraph Mira {\n" ++
         show_states (Set.toList myStates) ++
@@ -66,17 +63,15 @@ print_nfa (NFA myStates myMoves start finish) =
         show start ++ "[shape=box]\n" ++
         "}\n"
 
-show_states :: [Int] -> String
-
+show_states :: Show a => [a] -> String
 show_states = concat . (map ((++"\n") . show))
 
-show_final :: [Int] -> String
+show_final :: Show a => [a] -> String
 show_final = concat . (map ((++"[shape=doublecircle]\n") . show))
 
-print_move :: Move Int -> String
-
+print_move :: (Show a, Show b) => Move a b -> String
 print_move (Move s1 c s2) = "\t" ++ show s1 ++ "\t->\t"
-                            ++ show s2 ++ "\t[label=" ++ [c] ++ "]\n"
+                            ++ show s2 ++ "\t[label=" ++ show c ++ "]\n"
 
 print_move (Emove s1 s2) = "\t" ++ show s1 ++ "\t->\t" ++ show s2 ++ "[label=\"@\"]\n"
 
@@ -86,8 +81,7 @@ print_move (Emove s1 s2) = "\t" ++ show s1 ++ "\t->\t" ++ show s2 ++ "[label=\"@
 --									--
 --------------------------------------------------------------------------
 
-print_classes :: Set (Set Int) -> String
-
+print_classes :: Show a => Set (Set a) -> String
 print_classes ss = pcs (map Set.toList (Set.toList ss))
                    where
                    pcs = concatMap pc

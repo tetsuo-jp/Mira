@@ -33,7 +33,7 @@ import Data.Set (singleton, union)
 --									--
 --------------------------------------------------------------------------
 
-build :: Reg -> Nfa Int
+build :: Ord b => Reg b -> Nfa Int b
 
 build Epsilon = NFA
                 (Set.fromList [0 .. 1])
@@ -64,7 +64,7 @@ build (Not r) = m_not (build r)
 --									--
 --------------------------------------------------------------------------
 
-m_or :: Nfa Int -> Nfa Int -> Nfa Int
+m_or :: Ord b => Nfa Int b -> Nfa Int b -> Nfa Int b
 
 m_or (NFA states1 moves1 _start1 _finish1) (NFA states2 moves2 _start2 _finish2)
 
@@ -84,7 +84,7 @@ m_or (NFA states1 moves1 _start1 _finish1) (NFA states2 moves2 _start2 _finish2)
     newmoves = Set.fromList [ Emove 0 1 , Emove 0 (m1+1) ,
                        Emove m1 (m1+m2+1) , Emove (m1+m2) (m1+m2+1) ]
 
-m_and :: Nfa Int -> Nfa Int -> Nfa Int
+m_and :: Ord b => Nfa Int b -> Nfa Int b -> Nfa Int b
 
 m_and n1 n2
       = NFA
@@ -105,7 +105,7 @@ m_and n1 n2
       finish1' = (Set.toList (finalstates n1'))
       finish2' = (Set.toList (finalstates n2'))
 
-m_then :: Nfa Int -> Nfa Int -> Nfa Int
+m_then :: Ord b => Nfa Int b -> Nfa Int b -> Nfa Int b
 
 m_then (NFA states1 moves1 start1 _finish1) (NFA states2 moves2 _start2 finish2)
 
@@ -122,7 +122,7 @@ m_then (NFA states1 moves1 start1 _finish1) (NFA states2 moves2 _start2 finish2)
         finish2' = Set.map (renumber k) finish2
         k = Set.size states1 - 1
 
-m_star :: Nfa Int -> Nfa Int
+m_star :: Ord b => Nfa Int b -> Nfa Int b
 
 m_star (NFA myStates myMoves _start _finish)
   = NFA
@@ -137,7 +137,7 @@ m_star (NFA myStates myMoves _start _finish)
     moves'  = Set.map (renumber_move 1) myMoves
     newmoves = Set.fromList [ Emove 0 1 , Emove m 1 , Emove 0 (m+1) , Emove m (m+1) ]
 
-m_not :: Nfa Int -> Nfa Int
+m_not :: Ord b => Nfa Int b -> Nfa Int b
 
 m_not nfa
       = NFA myStates myMoves start (Set.difference myStates finish)
@@ -152,7 +152,7 @@ renumber :: Int -> Int -> Int
 
 renumber n st = n + st
 
-renumber_move :: Int -> Move Int -> Move Int
+renumber_move :: Ord b => Int -> Move Int b -> Move Int b
 
 renumber_move k (Move s1 c s2)
       = Move (renumber k s1) c (renumber k s2)

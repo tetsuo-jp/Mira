@@ -20,7 +20,7 @@ Char    { TokenChar $$ }
 ')'     { TokenCloseParen }
 
 %%
-Reg :: { Reg }
+Reg :: { Reg Char }
 Reg : '@'               { Epsilon }
   | Char                { Literal $1 }
   | Reg '*'             { (Star $1) }
